@@ -2880,15 +2880,19 @@ const ParentPortalController = {
      */
     showLoadingState(container, message = 'Loading...') {
         if (!container) return;
-        
-        const loadingHTML = `
+
+        this.clearPortalOverlays(container);
+
+        const overlay = document.createElement('div');
+        overlay.className = 'parent-panel-overlay';
+        overlay.innerHTML = `
             <div class="parent-loading-state" aria-live="polite" aria-busy="true">
                 <div class="loading-spinner"></div>
                 <p class="loading-message">${message}</p>
             </div>
         `;
-        
-        container.innerHTML = loadingHTML;
+
+        container.appendChild(overlay);
         container.classList.add('state-loading');
         this.uiState.isLoading = true;
     },
@@ -2902,24 +2906,29 @@ const ParentPortalController = {
      */
     showErrorState(container, title = 'Error', message = 'Something went wrong', onRetry = null) {
         if (!container) return;
-        
-        const retryButton = onRetry 
+
+        this.clearPortalOverlays(container);
+
+        const overlay = document.createElement('div');
+        overlay.className = 'parent-panel-overlay';
+
+        const retryButton = onRetry
             ? `<button class="btn btn-secondary" onclick="arguments[0].target.onclick.call(this)">Retry</button>`
             : '';
-        
-        const errorHTML = `
+
+        overlay.innerHTML = `
             <div class="parent-error-state" aria-live="assertive" role="alert">
                 <div class="error-icon">⚠️</div>
                 <h4>${title}</h4>
                 <p>${message}</p>
                 <div class="error-actions">
                     ${retryButton}
-                    <button class="btn btn-secondary" onclick="document.getElementById('parent-panel-wrapper').innerHTML = ''; ParentPortalController.showDefaultState(); return false;">Close</button>
+                    <button class="btn btn-secondary" onclick="ParentPortalController.showDefaultState(); return false;">Close</button>
                 </div>
             </div>
         `;
-        
-        container.innerHTML = errorHTML;
+
+        container.appendChild(overlay);
         container.classList.add('state-error');
         container.classList.remove('state-loading');
         this.uiState.isLoading = false;
@@ -2927,7 +2936,7 @@ const ParentPortalController = {
 
         // Attach retry handler if provided
         if (onRetry) {
-            const retryBtn = container.querySelector('.btn-secondary:first-child');
+            const retryBtn = overlay.querySelector('.btn-secondary:first-child');
             if (retryBtn) {
                 retryBtn.onclick = onRetry;
             }
@@ -2940,7 +2949,8 @@ const ParentPortalController = {
     showDefaultState() {
         const wrapper = document.getElementById('parent-panel-wrapper');
         if (!wrapper) return;
-        
+
+        this.clearPortalOverlays(wrapper);
         wrapper.classList.remove('state-loading', 'state-error');
         this.uiState.isLoading = false;
         this.uiState.error = null;
@@ -2967,6 +2977,7 @@ const ParentPortalController = {
                 throw new Error(response.error || 'Failed to load dashboard');
             }
 
+            this.clearPortalOverlays(wrapper);
             wrapper.classList.remove('state-loading');
             return response.data;
         } catch (error) {
@@ -2979,6 +2990,17 @@ const ParentPortalController = {
             );
             throw error;
         }
+    },
+
+    /**
+     * Remove loading/error overlays from the parent panel without wiping content
+     * @param {HTMLElement} container - Target container to clean up
+     */
+    clearPortalOverlays(container) {
+        if (!container) return;
+
+        const overlays = container.querySelectorAll('.parent-panel-overlay');
+        overlays.forEach(overlay => overlay.remove());
     },
 
     /**
