@@ -45,6 +45,7 @@ body {
 
 /* Navigation Styles */
 #main_menu {
+    display: none;
     position: relative;
     background: rgba(28, 67, 101, 0.52);
     padding: 1rem 1.5rem;
@@ -2085,6 +2086,7 @@ tr:hover {
     display: grid;
     grid-template-columns: 1fr;
     gap: 2rem;
+    position: relative;
     transition: border-color 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease, filter 0.3s ease;
 }
 
@@ -2446,14 +2448,23 @@ tr:hover {
 /* Parent Portal UI States */
 .parent-panel-wrapper.state-loading {
     pointer-events: none;
-    opacity: 0.7;
-    filter: blur(0.5px);
 }
 
 .parent-panel-wrapper.state-error {
     pointer-events: auto;
     opacity: 1;
     filter: none;
+}
+
+.parent-panel-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16px;
+    z-index: 2;
 }
 
 .parent-loading-state {
