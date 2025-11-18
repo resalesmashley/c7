@@ -1346,6 +1346,46 @@ function renderParentChat() {
     `).join('');
 }
 
+function formatParentChatTimestamp(date) {
+    return `${date.toLocaleString('en-US', { month: 'short' })} ${date.getDate()} • ${date.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit'
+    })}`;
+}
+
+function pushParentMessageToTeacherInbox(messageText, timestamp = new Date()) {
+    const parentName = currentUser.data?.name || 'Jennifer Smith';
+    const childName = currentUser.data?.child?.name || 'Emma Smith';
+
+    const conversation = CONVERSATIONS.find(convo =>
+        convo.parentName === parentName || convo.childName === childName
+    );
+
+    if (!conversation) return;
+
+    const newMessage = {
+        id: conversation.messages.length + 1,
+        sender: 'parent',
+        text: messageText,
+        timestamp,
+        read: currentConversationId === conversation.id
+    };
+
+    conversation.messages.push(newMessage);
+    conversation.lastMessage = messageText;
+    conversation.lastMessageTime = timestamp;
+
+    if (currentConversationId !== conversation.id) {
+        conversation.unread = (conversation.unread || 0) + 1;
+    }
+
+    loadConversations();
+
+    if (currentConversationId === conversation.id) {
+        loadMessages(conversation.id);
+    }
+}
+
 function renderParentEvents() {
     const list = document.getElementById('parent-events-list');
     if (!list) return;
@@ -3043,6 +3083,16 @@ const ParentPortalController = {
             // Clear input and show success
             if (input) input.value = '';
             showMessageToast('Message sent successfully!');
+
+            const timestamp = new Date();
+            PARENT_CHAT_MESSAGES.push({
+                id: response.data.id,
+                sender: 'You',
+                timestamp: formatParentChatTimestamp(timestamp),
+                message: messageText.trim()
+            });
+
+            pushParentMessageToTeacherInbox(messageText.trim(), timestamp);
 
             // Re-render chat with new message
             renderParentChat();
