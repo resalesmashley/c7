@@ -45,6 +45,7 @@ body {
 
 /* Navigation Styles */
 #main_menu {
+    display: none;
     position: relative;
     background: rgba(28, 67, 101, 0.52);
     padding: 1rem 1.5rem;
